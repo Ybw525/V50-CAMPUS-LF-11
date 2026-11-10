@@ -4,8 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}校园失物招领信息管理系统{% endblock %}</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- 需求 #10 页面优化：静态资源本地化，断网演示不再丢样式 -->
+  <link href="{{ url_for('static', filename='vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='vendor/bootstrap-icons/bootstrap-icons.min.css') }}" rel="stylesheet">
   <style>
     body { background: #f6f7f9; }
     .navbar-brand { font-weight: 600; letter-spacing: .3px; }
@@ -17,6 +18,17 @@
     .badge-done { background: #e4e7ec; color: #475467; }
     .meta { color: #667085; font-size: .875rem; }
     footer { color: #98a2b3; font-size: .8125rem; }
+    .badge-pending { background: #fef0c7; color: #b54708; }
+    .badge-offline { background: #f2f4f7; color: #667085; }
+    .stat-card { border-radius: .5rem; }
+    .stat-value { font-size: 1.75rem; font-weight: 600; line-height: 1.2; }
+    /* 需求 #10：窄屏下表格横向滚动、按钮换行不挤压 */
+    @media (max-width: 576px) {
+      .table-responsive-stack { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .d-flex.gap-2 > .btn { flex: 1 1 auto; }
+      h4 { font-size: 1.15rem; }
+      .stat-value { font-size: 1.4rem; }
+    }
   </style>
 </head>
 <body>
@@ -43,6 +55,16 @@
           <a class="nav-link {% if active == 'mine' %}active fw-semibold{% endif %}"
              href="{{ url_for('items.mine') }}">我的发布</a>
         </li>
+        {% if current_user.is_admin %}
+        <li class="nav-item">
+          <a class="nav-link {% if active == 'audit' %}active fw-semibold{% endif %}"
+             href="{{ url_for('items.admin_audit') }}">审核台</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if active == 'stats' %}active fw-semibold{% endif %}"
+             href="{{ url_for('items.stats') }}">统计</a>
+        </li>
+        {% endif %}
         {% endif %}
       </ul>
       <ul class="navbar-nav">
@@ -87,10 +109,10 @@
 </main>
 
 <footer class="container py-4 border-top">
-  校园失物招领信息管理系统 v1.0 ·
+  校园失物招领信息管理系统 v2.0 ·
   项目代号 V50-CAMPUS-LF-11 · 信息系统项目管理实训
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
 </body>
 </html>

@@ -7,8 +7,9 @@
 from datetime import date
 
 from app import create_app, db
-from app.models import (ROLE_ADMIN, ROLE_STUDENT, STATUS_DONE, STATUS_OPEN,
-                        TYPE_FOUND, TYPE_LOST, Item, User)
+from app.models import (AUDIT_PASSED, AUDIT_PENDING, ROLE_ADMIN, ROLE_STUDENT,
+                        STATUS_DONE, STATUS_OFFLINE, STATUS_OPEN, TYPE_FOUND,
+                        TYPE_LOST, Item, Message, User)
 
 app = create_app()
 
@@ -61,10 +62,33 @@ def main():
         db.session.add_all(demo)
         db.session.commit()
 
+        # 需求 #6：给「图书馆三楼遗失黑色雨伞」加两条留言
+        umbrella = Item.query.filter_by(title="图书馆三楼遗失黑色雨伞").first()
+        if umbrella:
+            db.session.add_all([
+                Message(item_id=umbrella.id, author_id=li.id,
+                        content="这把伞我好像在图书馆三楼见过，伞柄是不是有一圈黑色胶带？"),
+                Message(item_id=umbrella.id, author_id=yan.id,
+                        content="对，伞柄有一圈磨损，内侧还贴了张蓝色小贴纸。可以直接联系我。"),
+            ])
+            db.session.commit()
+
+        # 需求 #8：造一条待审核信息，供管理员审核演示
+        db.session.add(Item(
+            title="捡到一张学生证（张××）", item_type=TYPE_FOUND,
+            category="证件卡类", place="图书馆一楼大厅",
+            happened_at=date(2026, 11, 9),
+            detail="学生证姓名首字为“张”，专业为计算机应用技术，已交图书馆前台。",
+            contact="图书馆前台", status=STATUS_OPEN, owner_id=li.id,
+            audit_status=AUDIT_PENDING,
+        ))
+        db.session.commit()
+
         print("初始化完成")
         print(f"  用户 {User.query.count()} 个，信息 {Item.query.count()} 条")
         print("  管理员账号：admin / admin123")
         print("  学生账号：yanbowen / 123456，liyinuo / 123456")
+        print(f"  留言 {Message.query.count()} 条，待审核 {(Item.query.filter_by(audit_status=AUDIT_PENDING)).count()} 条")
 
 
 if __name__ == "__main__":
