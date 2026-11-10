@@ -25,6 +25,14 @@ TYPE_FOUND = "found"    # 招领
 
 STATUS_OPEN = "open"        # 待认领 / 待归还
 STATUS_DONE = "done"        # 已完结
+STATUS_OFFLINE = "offline"  # 已下架（需求 #8，仅管理员可操作）
+
+# 审核状态（需求 #8）
+AUDIT_PENDING = "pending"    # 待审核
+AUDIT_PASSED = "passed"      # 审核通过
+AUDIT_REJECTED = "rejected"  # 审核驳回
+
+AUDIT_LABELS = {AUDIT_PENDING: "待审核", AUDIT_PASSED: "已通过", AUDIT_REJECTED: "已驳回"}
 
 CATEGORIES = ["证件卡类", "电子产品", "书籍资料", "钥匙", "衣物", "其他"]
 
@@ -71,11 +79,49 @@ class Item(db.Model):
     detail = db.Column(db.Text, nullable=False)               # 详细描述
     contact = db.Column(db.String(64), nullable=False)        # 联系方式
     status = db.Column(db.String(8), nullable=False, default=STATUS_OPEN)
+    audit_status = db.Column(db.String(16), nullable=False, default=AUDIT_PASSED, index=True)
+    audit_note = db.Column(db.String(255), nullable=False, default="")
+    audited_by = db.Column(db.String(32), nullable=False, default="")
+    audited_at = db.Column(db.DateTime, nullable=True)
+    claimer = db.Column(db.String(64), nullable=False, default="")
+    claim_note = db.Column(db.String(255), nullable=False, default="")
+    claimed_at = db.Column(db.DateTime, nullable=True)
     owner_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.now, index=True)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
 
     owner = db.relationship("User", back_populates="items")
+    messages = db.relationship(
+        "Message", back_populates="item", lazy="dynamic",
+        cascade="all, delete-orphan", order_by="Message.created_at.asc()",
+    )
+
+    @property
+    def is_visible(self):
+        """只有审核通过且未下架的信息才在列表和详情对普通用户可见。"""
+        return self.audit_status == AUDIT_PASSED and self.status != STATUS_OFFLINE
+
+    @property
+    def is_offline(self):
+        return self.status == STATUS_OFFLINE
 
     def __repr__(self):
         return f"<Item {self.id} {self.title}>"
+
+
+class Message(db.Model):
+    """详情页留言（需求 #6 留言/联系方式）。"""
+
+    __tablename__ = "messages"
+
+    id = db.Column(db.Integer, primary_key=True)
+    item_id = db.Column(db.Integer, db.ForeignKey("items.id"), nullable=False, index=True)
+    author_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.now, index=True)
+
+    item = db.relationship("Item", back_populates="messages")
+    author = db.relationship("User")
+
+    def __repr__(self):
+        return f"<Message {self.id} on item {self.item_id}>"

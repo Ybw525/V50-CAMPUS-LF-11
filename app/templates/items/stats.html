@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}统计 · 校园失物招领{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h4 class="mb-1">数据统计</h4>
+    <div class="meta">需求 #9：发布量、认领完成情况与分类分布，数据实时取自数据库</div>
+  </div>
+  <a class="btn btn-outline-secondary" href="{{ url_for('items.admin_audit') }}">返回审核台</a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card card-body stat-card">
+      <div class="meta mb-1">信息总数</div>
+      <div class="stat-value">{{ total }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card card-body stat-card">
+      <div class="meta mb-1">待认领</div>
+      <div class="stat-value">{{ open_count }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card card-body stat-card">
+      <div class="meta mb-1">已完结</div>
+      <div class="stat-value">{{ done_count }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card card-body stat-card">
+      <div class="meta mb-1">认领成功率</div>
+      <div class="stat-value">{{ rate }}%</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card card-body">
+      <h6 class="mb-3">按类型</h6>
+      <table class="table align-middle mb-0">
+        <tbody>
+          <tr><td>失物</td><td class="text-end fw-semibold">{{ lost_count }}</td></tr>
+          <tr><td>招领</td><td class="text-end fw-semibold">{{ found_count }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card card-body">
+      <h6 class="mb-3">按分类</h6>
+      <table class="table align-middle mb-0">
+        <tbody>
+          {% for cat, n in by_category %}
+          <tr><td>{{ cat }}</td><td class="text-end fw-semibold">{{ n }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card card-body">
+      <h6 class="mb-3">审核与状态</h6>
+      <table class="table align-middle mb-0">
+        <tbody>
+          <tr><td>待审核</td><td class="text-end fw-semibold">{{ pending_count }}</td></tr>
+          <tr><td>已下架</td><td class="text-end fw-semibold">{{ offline_count }}</td></tr>
+          <tr><td>已登记认领结果</td><td class="text-end fw-semibold">{{ claim_success }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card card-body">
+      <h6 class="mb-3">指标口径说明</h6>
+      <ul class="meta mb-0 ps-3">
+        <li>信息总数：数据库中全部信息条数，含待审核与已下架。</li>
+        <li>认领成功率：已完结条数 ÷ 信息总数。</li>
+        <li>已登记认领结果：填写过认领人与认领时间的信息条数。</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

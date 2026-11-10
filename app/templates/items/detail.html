@@ -47,6 +47,26 @@
 
         <dt class="col-sm-3 fw-normal meta">发布时间</dt>
         <dd class="col-sm-9">{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}</dd>
+
+        {% if current_user.is_authenticated and (current_user.id == item.owner_id or current_user.is_admin) %}
+        <dt class="col-sm-3 fw-normal meta">审核状态</dt>
+        <dd class="col-sm-9">
+          {{ audit_labels.get(item.audit_status, item.audit_status) }}
+          {% if item.audited_by %}<span class="meta">（{{ item.audited_by }}
+            {{ item.audited_at.strftime('%m-%d %H:%M') if item.audited_at else '' }}）</span>{% endif %}
+          {% if item.audit_note %}<div class="meta">审核意见：{{ item.audit_note }}</div>{% endif %}
+        </dd>
+        {% endif %}
+
+        {% if item.claimed_at %}
+        <dt class="col-sm-3 fw-normal meta">认领人</dt>
+        <dd class="col-sm-9">{{ item.claimer }}
+          <span class="meta">（登记于 {{ item.claimed_at.strftime('%Y-%m-%d %H:%M') }}）</span></dd>
+        {% if item.claim_note %}
+        <dt class="col-sm-3 fw-normal meta">认领说明</dt>
+        <dd class="col-sm-9">{{ item.claim_note }}</dd>
+        {% endif %}
+        {% endif %}
       </dl>
 
       <hr class="my-4">
@@ -60,12 +80,84 @@
               {% if item.status == 'open' %}标记为已完结{% else %}恢复为待认领{% endif %}
             </button>
           </form>
+          {% if item.status == 'open' %}
+          <button class="btn btn-outline-success" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#claimBox">登记认领结果</button>
+          {% endif %}
+          {% if current_user.is_admin %}
+          <form method="post" action="{{ url_for('items.offline_item', item_id=item.id) }}">
+            <button class="btn btn-outline-warning" type="submit">
+              {% if item.is_offline %}恢复上架{% else %}下架{% endif %}
+            </button>
+          </form>
+          {% endif %}
           <form method="post" action="{{ url_for('items.delete', item_id=item.id) }}"
                 onsubmit="return confirm('确定删除这条信息吗？删除后不可恢复。');">
             <button class="btn btn-outline-danger" type="submit">删除</button>
           </form>
         {% endif %}
       </div>
+
+      {% if current_user.is_authenticated and (current_user.id == item.owner_id or current_user.is_admin) and item.status == 'open' %}
+      <div class="collapse mt-3" id="claimBox">
+        <div class="border rounded p-3 bg-light">
+          <h6 class="mb-2">登记认领结果（需求 #7）</h6>
+          <form method="post" action="{{ url_for('items.claim_item', item_id=item.id) }}">
+            <div class="row g-2">
+              <div class="col-md-5">
+                <input class="form-control" name="claimer" placeholder="认领人（姓名/学号）" required>
+              </div>
+              <div class="col-md-5">
+                <input class="form-control" name="claim_note" placeholder="认领说明（可选）">
+              </div>
+              <div class="col-md-2">
+                <button class="btn btn-success w-100" type="submit">确认</button>
+              </div>
+            </div>
+            <div class="meta mt-2">登记后该信息自动标记为「已完结」，并记录认领时间。</div>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+      <hr class="my-4" id="messages">
+
+      <h6 class="mb-3">留言（{{ messages|length }} 条）</h6>
+      {% if messages %}
+        <ul class="list-unstyled mb-3">
+          {% for msg in messages %}
+          <li class="border-start border-3 ps-3 mb-3">
+            <div class="d-flex justify-content-between">
+              <div>
+                <span class="fw-semibold">{{ msg.author.real_name }}</span>
+                <span class="meta ms-2">{{ msg.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+              </div>
+              {% if current_user.is_authenticated and (current_user.id == msg.author_id or current_user.is_admin) %}
+              <form method="post" action="{{ url_for('items.delete_message', message_id=msg.id) }}">
+                <button class="btn btn-sm btn-link text-danger p-0" type="submit">删除</button>
+              </form>
+              {% endif %}
+            </div>
+            <div style="white-space: pre-wrap;">{{ msg.content }}</div>
+          </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="meta">还没有留言。</p>
+      {% endif %}
+
+      {% if current_user.is_authenticated %}
+      <form method="post" action="{{ url_for('items.add_message', item_id=item.id) }}">
+        <div class="input-group">
+          <input class="form-control" name="content" maxlength="500"
+                 placeholder="留言给发布者，例如：这把伞好像是我的，能描述一下伞柄吗？" required>
+          <button class="btn btn-primary" type="submit">发表留言</button>
+        </div>
+        <div class="meta mt-2">留言公开可见，请勿填写身份证号等敏感信息。</div>
+      </form>
+      {% else %}
+      <p class="meta">登录后可以留言。</p>
+      {% endif %}
     </div>
   </div>
 </div>

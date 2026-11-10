@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}审核台 · 校园失物招领{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h4 class="mb-1">审核台</h4>
+    <div class="meta">需求 #8：新发布信息默认进入待审核，管理员可通过、驳回或下架</div>
+  </div>
+  <a class="btn btn-outline-secondary" href="{{ url_for('items.stats') }}">查看统计</a>
+</div>
+
+<div class="card card-body mb-4">
+  <h6 class="mb-3">待审核（{{ pending|length }} 条）</h6>
+  {% if pending %}
+  <div class="table-responsive-stack">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th style="width:70px;">编号</th>
+          <th>标题</th>
+          <th style="width:80px;">类型</th>
+          <th style="width:110px;">分类</th>
+          <th style="width:110px;">发布人</th>
+          <th style="width:150px;">发布时间</th>
+          <th style="width:210px;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in pending %}
+        <tr>
+          <td>#{{ item.id }}</td>
+          <td><a class="item-title" href="{{ url_for('items.detail', item_id=item.id) }}">{{ item.title }}</a></td>
+          <td>{{ type_labels.get(item.item_type, item.item_type) }}</td>
+          <td>{{ item.category }}</td>
+          <td>{{ item.owner.real_name }}</td>
+          <td class="meta">{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+          <td>
+            <form method="post" action="{{ url_for('items.audit_item', item_id=item.id) }}" class="d-flex gap-1">
+              <input type="hidden" name="decision" value="pass">
+              <button class="btn btn-sm btn-outline-success" type="submit">通过</button>
+            </form>
+            <form method="post" action="{{ url_for('items.audit_item', item_id=item.id) }}" class="d-flex gap-1 mt-1">
+              <input type="hidden" name="decision" value="reject">
+              <input class="form-control form-control-sm" name="audit_note" placeholder="驳回原因" style="min-width:80px;">
+              <button class="btn btn-sm btn-outline-danger text-nowrap" type="submit">驳回</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="meta mb-0">暂无待审核信息。</p>
+  {% endif %}
+</div>
+
+<div class="card card-body">
+  <h6 class="mb-3">已下架（{{ offline|length }} 条）</h6>
+  {% if offline %}
+  <div class="table-responsive-stack">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th style="width:70px;">编号</th>
+          <th>标题</th>
+          <th style="width:110px;">分类</th>
+          <th style="width:110px;">发布人</th>
+          <th style="width:210px;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in offline %}
+        <tr>
+          <td>#{{ item.id }}</td>
+          <td><span class="badge badge-offline me-1">已下架</span>
+              <a class="item-title" href="{{ url_for('items.detail', item_id=item.id) }}">{{ item.title }}</a></td>
+          <td>{{ item.category }}</td>
+          <td>{{ item.owner.real_name }}</td>
+          <td>
+            <form method="post" action="{{ url_for('items.offline_item', item_id=item.id) }}">
+              <button class="btn btn-sm btn-outline-primary" type="submit">恢复上架</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="meta mb-0">暂无下架信息。</p>
+  {% endif %}
+</div>
+{% endblock %}
