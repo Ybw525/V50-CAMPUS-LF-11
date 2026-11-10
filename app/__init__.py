@@ -43,8 +43,10 @@ def create_app(config_object=None):
         return db.session.get(models.User, int(user_id))
 
     from app.auth import bp as auth_bp
+    from app.items import bp as items_bp
 
     app.register_blueprint(auth_bp)
+    app.register_blueprint(items_bp)
 
     with app.app_context():
         db.create_all()

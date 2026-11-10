@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}全部信息 · 校园失物招领{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-3">
+  <div class="col-lg-8">
+    <h4 class="mb-1">失物与招领信息</h4>
+    <div class="meta">共 {{ pagination.total }} 条信息</div>
+  </div>
+  <div class="col-lg-4 text-lg-end">
+    {% if current_user.is_authenticated %}
+      <a class="btn btn-primary" href="{{ url_for('items.create') }}">
+        <i class="bi bi-plus-lg"></i> 发布信息
+      </a>
+    {% else %}
+      <a class="btn btn-outline-primary" href="{{ url_for('auth.login') }}">登录后发布</a>
+    {% endif %}
+  </div>
+</div>
+
+<form class="card card-body mb-4" method="get" action="{{ url_for('items.index') }}">
+  <div class="row g-2 align-items-end">
+    <div class="col-md-4">
+      <label class="form-label small">关键词</label>
+      <input class="form-control" type="text" name="q" value="{{ keyword }}"
+             placeholder="标题 / 描述 / 地点">
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small">类型</label>
+      <select class="form-select" name="type">
+        <option value="">全部</option>
+        <option value="lost" {% if item_type == 'lost' %}selected{% endif %}>失物</option>
+        <option value="found" {% if item_type == 'found' %}selected{% endif %}>招领</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small">分类</label>
+      <select class="form-select" name="category">
+        <option value="">全部</option>
+        {% for c in categories %}
+        <option value="{{ c }}" {% if category == c %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small">状态</label>
+      <select class="form-select" name="status">
+        <option value="">全部</option>
+        <option value="open" {% if status == 'open' %}selected{% endif %}>待认领</option>
+        <option value="done" {% if status == 'done' %}selected{% endif %}>已完结</option>
+      </select>
+    </div>
+    <div class="col-md-2 d-flex gap-2">
+      <button class="btn btn-primary flex-fill" type="submit">检索</button>
+      <a class="btn btn-light" href="{{ url_for('items.index') }}">重置</a>
+    </div>
+  </div>
+</form>
+
+{% if items %}
+  <div class="list-group mb-4">
+    {% for item in items %}
+    <a class="list-group-item list-group-item-action py-3"
+       href="{{ url_for('items.detail', item_id=item.id) }}">
+      <div class="d-flex justify-content-between align-items-start">
+        <div class="me-3">
+          <div class="mb-1">
+            <span class="badge {% if item.item_type == 'lost' %}badge-lost{% else %}badge-found{% endif %}">
+              {{ type_labels.get(item.item_type, item.item_type) }}
+            </span>
+            {% if item.status == 'done' %}
+              <span class="badge badge-done">已完结</span>
+            {% endif %}
+            <span class="item-title ms-1">{{ item.title }}</span>
+          </div>
+          <div class="meta">
+            <i class="bi bi-geo-alt"></i> {{ item.place }}
+            · <i class="bi bi-calendar3"></i> {{ item.happened_at }}
+            · {{ item.category }}
+            · 发布人 {{ item.owner.real_name }}
+          </div>
+        </div>
+        <div class="meta text-nowrap">{{ item.created_at.strftime('%m-%d %H:%M') }}</div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+
+  {% if pagination.pages > 1 %}
+  <nav>
+    <ul class="pagination justify-content-center">
+      <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for('items.index', page=pagination.prev_num,
+             q=keyword, category=category, type=item_type, status=status) }}">上一页</a>
+      </li>
+      <li class="page-item disabled">
+        <span class="page-link">{{ pagination.page }} / {{ pagination.pages }}</span>
+      </li>
+      <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for('items.index', page=pagination.next_num,
+             q=keyword, category=category, type=item_type, status=status) }}">下一页</a>
+      </li>
+    </ul>
+  </nav>
+  {% endif %}
+{% else %}
+  <div class="card card-body text-center py-5 text-muted">
+    <div class="mb-2"><i class="bi bi-inbox fs-1"></i></div>
+    暂无符合条件的信息。
+    {% if keyword or category or item_type or status %}
+      <div class="mt-2"><a href="{{ url_for('items.index') }}">清除筛选条件</a></div>
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}发布信息 · 校园失物招领{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <h4 class="mb-3">发布失物 / 招领信息</h4>
+
+    <form class="card card-body" method="post"
+          action="{{ url_for('items.create') }}" novalidate>
+      <div class="row g-3">
+        <div class="col-md-8">
+          <label class="form-label">标题 <span class="text-danger">*</span></label>
+          <input class="form-control" type="text" name="title" maxlength="80"
+                 value="{{ form.get('title', '') }}"
+                 placeholder="例如：图书馆三楼遗失黑色雨伞">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">类型 <span class="text-danger">*</span></label>
+          <select class="form-select" name="item_type">
+            <option value="">请选择</option>
+            <option value="lost" {% if form.get('item_type') == 'lost' %}selected{% endif %}>失物（我丢了东西）</option>
+            <option value="found" {% if form.get('item_type') == 'found' %}selected{% endif %}>招领（我捡到东西）</option>
+          </select>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label">分类 <span class="text-danger">*</span></label>
+          <select class="form-select" name="category">
+            <option value="">请选择</option>
+            {% for c in categories %}
+            <option value="{{ c }}" {% if form.get('category') == c %}selected{% endif %}>{{ c }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">地点 <span class="text-danger">*</span></label>
+          <input class="form-control" type="text" name="place" maxlength="64"
+                 value="{{ form.get('place', '') }}" placeholder="例如：图书馆三楼自习区">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">日期 <span class="text-danger">*</span></label>
+          <input class="form-control" type="date" name="happened_at"
+                 value="{{ form.get('happened_at', '') }}">
+        </div>
+
+        <div class="col-12">
+          <label class="form-label">详细描述 <span class="text-danger">*</span></label>
+          <textarea class="form-control" name="detail" rows="4"
+                    placeholder="颜色、品牌、外观特征、内含物品等">{{ form.get('detail', '') }}</textarea>
+        </div>
+
+        <div class="col-12">
+          <label class="form-label">联系方式 <span class="text-danger">*</span></label>
+          <input class="form-control" type="text" name="contact" maxlength="64"
+                 value="{{ form.get('contact', '') }}"
+                 placeholder="手机号 / 微信号 / 宿舍号">
+          <div class="form-text">联系方式只在详情页展示，请勿填写身份证号等敏感信息。</div>
+        </div>
+      </div>
+
+      <div class="d-flex gap-2 mt-4">
+        <button class="btn btn-primary" type="submit">提交发布</button>
+        <a class="btn btn-light" href="{{ url_for('items.index') }}">取消</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

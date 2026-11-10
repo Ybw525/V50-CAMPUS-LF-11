@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}{{ item.title }} · 校园失物招领{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('items.index') }}">全部信息</a></li>
+    <li class="breadcrumb-item active">{{ item.title }}</li>
+  </ol>
+</nav>
+
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+    <div class="card card-body">
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <h4 class="mb-0">
+          <span class="badge {% if item.item_type == 'lost' %}badge-lost{% else %}badge-found{% endif %}">
+            {{ type_labels.get(item.item_type, item.item_type) }}
+          </span>
+          {{ item.title }}
+        </h4>
+        {% if item.status == 'done' %}
+          <span class="badge badge-done">已完结</span>
+        {% else %}
+          <span class="badge text-bg-warning">待认领</span>
+        {% endif %}
+      </div>
+
+      <dl class="row mt-3 mb-0">
+        <dt class="col-sm-3 fw-normal meta">分类</dt>
+        <dd class="col-sm-9">{{ item.category }}</dd>
+
+        <dt class="col-sm-3 fw-normal meta">地点</dt>
+        <dd class="col-sm-9">{{ item.place }}</dd>
+
+        <dt class="col-sm-3 fw-normal meta">日期</dt>
+        <dd class="col-sm-9">{{ item.happened_at }}</dd>
+
+        <dt class="col-sm-3 fw-normal meta">详细描述</dt>
+        <dd class="col-sm-9" style="white-space: pre-wrap;">{{ item.detail }}</dd>
+
+        <dt class="col-sm-3 fw-normal meta">联系方式</dt>
+        <dd class="col-sm-9">{{ item.contact }}</dd>
+
+        <dt class="col-sm-3 fw-normal meta">发布人</dt>
+        <dd class="col-sm-9">{{ item.owner.real_name }}</dd>
+
+        <dt class="col-sm-3 fw-normal meta">发布时间</dt>
+        <dd class="col-sm-9">{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}</dd>
+      </dl>
+
+      <hr class="my-4">
+
+      <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-light" href="{{ url_for('items.index') }}">返回列表</a>
+
+        {% if current_user.is_authenticated and (current_user.id == item.owner_id or current_user.is_admin) %}
+          <form method="post" action="{{ url_for('items.toggle_status', item_id=item.id) }}">
+            <button class="btn btn-outline-primary" type="submit">
+              {% if item.status == 'open' %}标记为已完结{% else %}恢复为待认领{% endif %}
+            </button>
+          </form>
+          <form method="post" action="{{ url_for('items.delete', item_id=item.id) }}"
+                onsubmit="return confirm('确定删除这条信息吗？删除后不可恢复。');">
+            <button class="btn btn-outline-danger" type="submit">删除</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
