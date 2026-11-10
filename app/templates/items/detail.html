@@ -40,7 +40,14 @@
         <dd class="col-sm-9" style="white-space: pre-wrap;">{{ item.detail }}</dd>
 
         <dt class="col-sm-3 fw-normal meta">联系方式</dt>
-        <dd class="col-sm-9">{{ item.contact }}</dd>
+        <dd class="col-sm-9">
+          {% if current_user.is_authenticated %}
+            {{ item.contact }}
+          {% else %}
+            <span class="meta">登录后可见</span>
+            <a class="ms-2" href="{{ url_for('auth.login') }}">去登录</a>
+          {% endif %}
+        </dd>
 
         <dt class="col-sm-3 fw-normal meta">发布人</dt>
         <dd class="col-sm-9">{{ item.owner.real_name }}</dd>

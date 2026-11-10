@@ -154,3 +154,21 @@ def test_stats_numbers_match_data(app, client):
     assert resp.status_code == 200
     assert "信息总数" in text
     assert "认领成功率" in text
+
+def test_contact_hidden_when_logged_out(app, client):
+    """TC-034 未登录访问详情页时联系方式不可见（需求 #6 联系方式可见性）。"""
+    item_id = make_item(app, "student", title="联系方式可见性测试")
+    resp = client.get(f"/items/{item_id}")
+    text = resp.get_data(as_text=True)
+    assert "登录后可见" in text
+    assert "138****0000" not in text
+
+
+def test_contact_visible_when_logged_in(app, client):
+    """TC-035 登录后详情页可见联系方式。"""
+    item_id = make_item(app, "student", title="联系方式展示验证")
+    login(client, "other", "123456")
+    resp = client.get(f"/items/{item_id}")
+    text = resp.get_data(as_text=True)
+    assert "138****0000" in text
+    assert "登录后可见" not in text
