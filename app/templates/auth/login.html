@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}登录 · 校园失物招领{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5 col-lg-4">
+    <div class="card card-body">
+      <h5 class="mb-1">登录</h5>
+      <p class="meta mb-4">登录后可发布失物/招领信息</p>
+
+      <form method="post" action="{{ url_for('auth.login') }}" novalidate>
+        <div class="mb-3">
+          <label class="form-label">用户名</label>
+          <input class="form-control" type="text" name="username"
+                 value="{{ username }}" autocomplete="username" autofocus>
+        </div>
+        <div class="mb-4">
+          <label class="form-label">密码</label>
+          <input class="form-control" type="password" name="password"
+                 autocomplete="current-password">
+        </div>
+        <button class="btn btn-primary w-100" type="submit">登录</button>
+      </form>
+
+      <div class="text-center mt-3 meta">
+        还没有账号？<a href="{{ url_for('auth.register') }}">立即注册</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
