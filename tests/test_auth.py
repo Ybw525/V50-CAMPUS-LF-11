@@ -10,7 +10,7 @@ def test_login_page_accessible(client):
     """TC-001 未登录可访问登录页。"""
     resp = client.get("/auth/login")
     assert resp.status_code == 200
-    assert "这段文字页面上根本不存在用于验证构建能否拦住失败" in resp.get_data(as_text=True)
+    assert "登录" in resp.get_data(as_text=True)
 
 
 def test_register_new_user(client):
