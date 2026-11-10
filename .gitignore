@@ -1,0 +1,32 @@
+# 虚拟环境
+.venv/
+venv/
+env/
+
+# Python 缓存
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# 数据库与实例文件
+instance/
+*.db
+*.sqlite
+*.sqlite3
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# 环境变量
+.env
+
+# 构建产物
+dist/
+build/
+*.egg-info/

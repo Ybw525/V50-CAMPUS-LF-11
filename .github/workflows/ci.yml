@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: [ "main", "dev" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [ "3.12" ]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Lint with compileall
+      run: |
+        python -m compileall app run.py seed.py -q
+
+    - name: Test with pytest
+      run: |
+        python -m pytest -v
+
+    - name: Smoke test app startup
+      run: |
+        python -c "from app import create_app; a=create_app({'SQLALCHEMY_DATABASE_URI':'sqlite:///:memory:'}); print('app ok', a.name)"
